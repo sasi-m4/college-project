@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#087eaf">
+<title>AquaTrack - Water Tracker</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Arial,sans-serif;
+  background:linear-gradient(160deg,#e5f8ff,#f7fbff);
+  color:#12354a;min-height:100vh;padding:20px;
+}
+main{max-width:430px;margin:0 auto}
+header{text-align:center;padding:18px 0}
+.logo{font-size:38px}
+h1{margin:8px 0;color:#087eaf}
+p{color:#688296}
+.card{
+  background:white;border-radius:22px;padding:22px;
+  margin:15px 0;box-shadow:0 8px 25px #0a507414;
+}
+.center{text-align:center}
+.ring{
+  width:180px;height:180px;border-radius:50%;
+  margin:22px auto;display:grid;place-items:center;
+  background:conic-gradient(#13a8df 0%,#e4f3f9 0%);
+  position:relative;
+}
+.ring:before{
+  content:"";position:absolute;width:150px;height:150px;
+  background:white;border-radius:50%;
+}
+.ring-content{z-index:1}
+.big{font-size:34px;font-weight:bold}
+.small{font-size:13px;color:#688296}
+button,input{
+  font:inherit;border-radius:12px;padding:13px;
+}
+button{
+  border:0;background:#087eaf;color:white;
+  cursor:pointer;font-weight:bold;
+}
+button:active{transform:scale(.97)}
+.presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.presets button{background:#e2f6ff;color:#087eaf}
+.custom{display:flex;gap:8px;margin-top:12px}
+input{border:1px solid #c9dce5;width:100%;min-width:0}
+.custom button{white-space:nowrap}
+.target{display:flex;gap:8px;align-items:center}
+.target input{flex:1}
+.entry{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 0;border-bottom:1px solid #edf2f5;gap:8px;
+}
+.entry:last-child{border-bottom:0}
+.remove{background:#fff0f0;color:#b53636;padding:8px}
+.secondary{background:#e2f6ff;color:#087eaf}
+footer{text-align:center;font-size:12px;color:#8196a3;padding:15px}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="logo">💧</div>
+  <h1>AquaTrack</h1>
+  <p>Your daily water companion</p>
+</header>
+
+<section class="card center">
+  <div class="small">TODAY'S INTAKE</div>
+  <div class="ring" id="ring">
+    <div class="ring-content">
+      <div class="big" id="total">0</div>
+      <div class="small">ml consumed</div>
+    </div>
+  </div>
+  <div id="remaining">2000 ml remaining</div>
+  <p id="progress">0% of daily goal</p>
+</section>
+
+<section class="card">
+  <h3>Set daily target</h3>
+  <div class="target">
+    <input id="target" type="number" min="1" max="20000"
+      value="2000" aria-label="Daily target in millilitres">
+    <button onclick="saveTarget()">Save</button>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Add water</h3>
+  <div class="presets">
+    <button onclick="addWater(150)">+150 ml</button>
+    <button onclick="addWater(250)">+250 ml</button>
+    <button onclick="addWater(500)">+500 ml</button>
+  </div>
+  <div class="custom">
+    <input id="custom" type="number" min="1" max="10000"
+      placeholder="Custom ml" aria-label="Custom water amount">
+    <button onclick="addCustom()">Add</button>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Today's history</h3>
+  <div id="history"><p>No water logged yet.</p></div>
+  <button class="secondary" style="width:100%;margin-top:12px"
+    onclick="resetDay()">Reset today's log</button>
+</section>
+
+<footer>Drink regularly. Your daily progress, made simple.</footer>
+</main>
+
+<script>
+const KEY = "aquatrack-data-v1";
+const today = () => new Date().toLocaleDateString("en-CA");
+
+let state = {date:today(), target:2000, entries:[]};
+
+try {
+  const saved = JSON.parse(localStorage.getItem(KEY));
+  if (saved && saved.date === today()) state = saved;
+  else if (saved && saved.target) state.target = saved.target;
+} catch(e) {}
+
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch(e) {}
+}
+
+function total(){
+  return state.entries.reduce((sum,e)=>sum+e.amount,0);
+}
+
+function render(){
+  const sum = total();
+  const goal = Number(state.target) || 2000;
+  const pct = Math.min(100, Math.round(sum / goal * 100));
+  document.getElementById("total").textContent = sum.toLocaleString();
+  document.getElementById("remaining").textContent =
+    Math.max(0,goal-sum).toLocaleString() + " ml remaining";
+  document.getElementById("progress").textContent =
+    pct + "% of daily goal";
+  document.getElementById("ring").style.background =
+    `conic-gradient(#13a8df ${pct}%,#e4f3f9 ${pct}%)`;
+  document.getElementById("target").value = goal;
+
+  const history = document.getElementById("history");
+  if (!state.entries.length) {
+    history.innerHTML = "<p>No water logged yet.</p>";
+  } else {
+    history.innerHTML = "";
+    [...state.entries].reverse().forEach(entry=>{
+      const row = document.createElement("div");
+      row.className = "entry";
+      const info = document.createElement("div");
+      const amount = document.createElement("strong");
+      amount.textContent = entry.amount + " ml";
+      const time = document.createElement("div");
+      time.className = "small";
+      time.textContent = entry.time;
+      info.append(amount,time);
+      const remove = document.createElement("button");
+      remove.className = "remove";
+      remove.textContent = "Remove";
+      remove.onclick = ()=> {
+        state.entries = state.entries.filter(e=>e.id!==entry.id);
+        save();render();
+      };
+      row.append(info,remove);
+      history.append(row);
+    });
+  }
+}
+
+function addWater(amount){
+  amount = Number(amount);
+  if (!Number.isFinite(amount) || amount<=0 || amount>10000){
+    alert("Enter an amount between 1 and 10000 ml.");
+    return;
+  }
+  state.entries.push({
+    id: Date.now()+Math.random(),
+    amount: Math.round(amount),
+    time: new Date().toLocaleTimeString([],{
+      hour:"2-digit",minute:"2-digit"
+    })
+  });
+  save();render();
+}
+
+function addCustom(){
+  const field = document.getElementById("custom");
+  if (!field.value) return;
+  addWater(field.value);
+  field.value = "";
+}
+
+function saveTarget(){
+  const value = Number(document.getElementById("target").value);
+  if (!Number.isFinite(value)||value<1||value>20000){
+    alert("Set a target between 1 and 20000 ml.");
+    return;
+  }
+  state.target = Math.round(value);
+  save();render();
+}
+
+function resetDay(){
+  if (confirm("Clear all of today's water entries?")){
+    state.entries = [];
+    save();render();
+  }
+}
+
+render();
+</script>
+</body>
+</html>
