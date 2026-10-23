@@ -1,220 +1,738 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#087eaf">
+<meta name="theme-color" content="#6c5ce7">
 <title>AquaTrack - Water Tracker</title>
 <style>
-*{box-sizing:border-box}
-body{
-  margin:0;font-family:Arial,sans-serif;
-  background:linear-gradient(160deg,#e5f8ff,#f7fbff);
-  color:#12354a;min-height:100vh;padding:20px;
+:root {
+  --ink:#20264a;
+  --muted:#727b9c;
+  --purple:#6c5ce7;
+  --blue:#36bffa;
+  --pink:#ff7eb6;
 }
-main{max-width:430px;margin:0 auto}
-header{text-align:center;padding:18px 0}
-.logo{font-size:38px}
-h1{margin:8px 0;color:#087eaf}
-p{color:#688296}
-.card{
-  background:white;border-radius:22px;padding:22px;
-  margin:15px 0;box-shadow:0 8px 25px #0a507414;
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  min-height:100vh;
+  font-family:Arial, sans-serif;
+  color:var(--ink);
+  background:linear-gradient(135deg,#e9e7ff,#e1f7ff,#fff0f7);
+  padding:16px;
+  overflow-x:hidden;
 }
-.center{text-align:center}
-.ring{
-  width:180px;height:180px;border-radius:50%;
-  margin:22px auto;display:grid;place-items:center;
-  background:conic-gradient(#13a8df 0%,#e4f3f9 0%);
-  position:relative;
+
+@keyframes float {
+  50% { transform:translateY(-15px); }
 }
-.ring:before{
-  content:"";position:absolute;width:150px;height:150px;
-  background:white;border-radius:50%;
+@keyframes bob {
+  50% { transform:translateY(-6px); }
 }
-.ring-content{z-index:1}
-.big{font-size:34px;font-weight:bold}
-.small{font-size:13px;color:#688296}
-button,input{
-  font:inherit;border-radius:12px;padding:13px;
+@keyframes pop {
+  from { transform:scale(.9); opacity:0; }
+  to { transform:scale(1); opacity:1; }
 }
-button{
-  border:0;background:#087eaf;color:white;
-  cursor:pointer;font-weight:bold;
+@keyframes shimmer {
+  to { background-position:200% center; }
 }
-button:active{transform:scale(.97)}
-.presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.presets button{background:#e2f6ff;color:#087eaf}
-.custom{display:flex;gap:8px;margin-top:12px}
-input{border:1px solid #c9dce5;width:100%;min-width:0}
-.custom button{white-space:nowrap}
-.target{display:flex;gap:8px;align-items:center}
-.target input{flex:1}
-.entry{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:12px 0;border-bottom:1px solid #edf2f5;gap:8px;
+@keyframes fall {
+  to { transform:translateY(110vh) rotate(500deg); opacity:0; }
 }
-.entry:last-child{border-bottom:0}
-.remove{background:#fff0f0;color:#b53636;padding:8px}
-.secondary{background:#e2f6ff;color:#087eaf}
-footer{text-align:center;font-size:12px;color:#8196a3;padding:15px}
+
+.app {
+  max-width:520px;
+  margin:auto;
+  background:#ffffffdf;
+  border:1px solid white;
+  border-radius:28px;
+  overflow:hidden;
+  box-shadow:0 20px 60px #4c55a526;
+  animation:pop .5s ease-out;
+}
+
+.hero {
+  padding:25px 22px;
+  color:white;
+  background:linear-gradient(120deg,#6c5ce7,#4d9cff,#36c9df);
+  background-size:200% 200%;
+  animation:shimmer 8s linear infinite;
+}
+
+.brand {
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.logo {
+  width:50px;
+  height:50px;
+  border-radius:16px;
+  background:#ffffff35;
+  display:grid;
+  place-items:center;
+  font-size:29px;
+  animation:bob 3s infinite;
+}
+
+h1 { margin:0; font-size:26px; }
+.tag { margin:5px 0 0; font-size:13px; }
+
+.streak {
+  display:inline-block;
+  margin-top:17px;
+  padding:8px 12px;
+  border-radius:30px;
+  background:#ffffff25;
+  font-size:12px;
+}
+
+main { padding:18px; }
+
+.hello {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-bottom:15px;
+}
+
+.hello h2 { font-size:19px; margin:0; }
+.hello p { color:var(--muted); font-size:12px; }
+
+.date-pill {
+  padding:9px;
+  border-radius:12px;
+  background:#f0efff;
+  color:#6757d9;
+  font-size:11px;
+  font-weight:bold;
+}
+
+.panel {
+  padding:18px;
+  margin-bottom:15px;
+  border-radius:22px;
+  background:white;
+  border:1px solid #edf0ff;
+  box-shadow:0 7px 22px #4c55a20b;
+}
+
+.progress-panel {
+  text-align:center;
+  background:linear-gradient(145deg,#fff,#f7f5ff);
+}
+
+.muted { color:var(--muted); font-size:12px; }
+
+.ring {
+  width:185px;
+  height:185px;
+  margin:18px auto;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:conic-gradient(#6c5ce7 0deg,#e9e7ff 0deg);
+  transition:background .6s;
+  filter:drop-shadow(0 8px 12px #7865ed20);
+}
+
+.ring-inner {
+  width:158px;
+  height:158px;
+  border-radius:50%;
+  background:white;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+.drop {
+  font-size:27px;
+  animation:bob 2s infinite;
+}
+
+.big {
+  font-size:28px;
+  font-weight:900;
+  margin:5px 0;
+}
+
+.progress-track {
+  height:9px;
+  margin-top:17px;
+  border-radius:20px;
+  background:#ecebff;
+  overflow:hidden;
+}
+
+.progress-fill {
+  height:100%;
+  width:0%;
+  border-radius:20px;
+  background:linear-gradient(90deg,#6c5ce7,#39bdf8,#ff80b5);
+  background-size:200% 100%;
+  animation:shimmer 3s linear infinite;
+  transition:width .6s;
+}
+
+.progress-foot {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  margin-top:8px;
+  font-size:11px;
+  color:var(--muted);
+}
+
+.stats {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:11px;
+  margin-bottom:15px;
+}
+
+.stat {
+  padding:15px;
+  border-radius:19px;
+  color:white;
+}
+
+.purple { background:linear-gradient(135deg,#7768ee,#9a79f6); }
+.cyan { background:linear-gradient(135deg,#23b8d7,#42d9c2); }
+
+.stat-label { font-size:11px; }
+.stat-value { font-size:18px; font-weight:bold; margin-top:9px; }
+.stat-note { font-size:10px; margin-top:5px; }
+
+.motivation {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:15px;
+  margin-bottom:15px;
+  border-radius:19px;
+  background:linear-gradient(120deg,#fff1f7,#f0f0ff);
+}
+
+.motivation .emoji { font-size:28px; }
+.motivation strong { font-size:13px; }
+.motivation p {
+  margin:5px 0 0;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
+}
+
+.section-title {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-bottom:13px;
+}
+
+.section-title h3 { margin:0; font-size:16px; }
+
+.quick {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.water-btn {
+  border:1px solid #e6e8ff;
+  border-radius:16px;
+  padding:13px 3px;
+  background:linear-gradient(#fbfaff,#f2f1ff);
+  color:var(--ink);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:7px;
+  cursor:pointer;
+  transition:transform .2s,box-shadow .2s;
+}
+
+.water-btn:hover {
+  transform:translateY(-4px);
+  box-shadow:0 8px 18px #7665ed20;
+}
+
+.water-btn:active { transform:scale(.94); }
+.cup { font-size:24px; }
+.water-btn strong { font-size:13px; }
+.water-btn small { font-size:10px; color:var(--muted); }
+
+form { display:flex; gap:8px; margin-top:12px; }
+
+.field {
+  width:100%;
+  min-width:0;
+  padding:12px;
+  border:1px solid #e3e6f4;
+  background:#fbfcff;
+  border-radius:12px;
+  outline:none;
+  font-size:14px;
+}
+
+.field:focus { border-color:var(--purple); }
+
+.btn {
+  padding:12px 14px;
+  border:0;
+  border-radius:12px;
+  color:white;
+  background:linear-gradient(120deg,#6c5ce7,#4b9efb);
+  font-weight:bold;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+.btn:active { transform:scale(.96); }
+
+.light {
+  background:#f0efff;
+  color:#6254d7;
+}
+
+.entry {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  border:1px solid #eff0f8;
+  border-radius:13px;
+  padding:11px;
+  margin-top:8px;
+  animation:pop .3s;
+}
+
+.entry small {
+  display:block;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+.remove {
+  background:#fff0f4;
+  color:#d84b7c;
+  border:0;
+  border-radius:9px;
+  padding:8px;
+  cursor:pointer;
+}
+
+.empty {
+  text-align:center;
+  padding:20px 8px;
+  color:var(--muted);
+  background:#fafaff;
+  border-radius:13px;
+  font-size:12px;
+}
+
+footer {
+  text-align:center;
+  padding:5px 10px 20px;
+  color:#8890aa;
+  font-size:11px;
+  line-height:1.6;
+}
+
+.toast {
+  position:fixed;
+  left:50%;
+  bottom:20px;
+  transform:translate(-50%,20px);
+  opacity:0;
+  background:#25254a;
+  color:white;
+  padding:12px 17px;
+  border-radius:30px;
+  transition:.3s;
+  pointer-events:none;
+  font-size:13px;
+  z-index:10;
+  white-space:nowrap;
+}
+
+.toast.show { opacity:1; transform:translate(-50%,0); }
+
+.confetti {
+  position:fixed;
+  top:-20px;
+  z-index:20;
+  pointer-events:none;
+  animation:fall 1.8s linear forwards;
+}
+
+@media(max-width:380px) {
+  body { padding:8px; }
+  main { padding:12px; }
+  .ring { width:165px; height:165px; }
+  .ring-inner { width:141px; height:141px; }
+}
+
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after {
+    animation:none!important;
+    transition:none!important;
+  }
+}
 </style>
 </head>
 <body>
-<main>
-<header>
-  <div class="logo">💧</div>
-  <h1>AquaTrack</h1>
-  <p>Your daily water companion</p>
-</header>
-
-<section class="card center">
-  <div class="small">TODAY'S INTAKE</div>
-  <div class="ring" id="ring">
-    <div class="ring-content">
-      <div class="big" id="total">0</div>
-      <div class="small">ml consumed</div>
+<div class="app">
+<header class="hero">
+  <div class="brand">
+    <div class="logo">💧</div>
+    <div>
+      <h1>AquaTrack</h1>
+      <p class="tag">Little sips. Big difference.</p>
     </div>
   </div>
-  <div id="remaining">2000 ml remaining</div>
-  <p id="progress">0% of daily goal</p>
-</section>
-
-<section class="card">
-  <h3>Set daily target</h3>
-  <div class="target">
-    <input id="target" type="number" min="1" max="20000"
-      value="2000" aria-label="Daily target in millilitres">
-    <button onclick="saveTarget()">Save</button>
+  <div class="streak" id="heroMessage">
+    ✨ Your hydration journey starts now
   </div>
-</section>
+</header>
 
-<section class="card">
-  <h3>Add water</h3>
-  <div class="presets">
-    <button onclick="addWater(150)">+150 ml</button>
-    <button onclick="addWater(250)">+250 ml</button>
-    <button onclick="addWater(500)">+500 ml</button>
+<main>
+  <div class="hello">
+    <div>
+      <h2>Hey, water hero! 👋</h2>
+      <p id="today">Let's make today refreshing.</p>
+    </div>
+    <div class="date-pill" id="datePill">TODAY</div>
   </div>
-  <div class="custom">
-    <input id="custom" type="number" min="1" max="10000"
-      placeholder="Custom ml" aria-label="Custom water amount">
-    <button onclick="addCustom()">Add</button>
+
+  <section class="panel progress-panel">
+    <div class="muted">YOUR DAILY HYDRATION</div>
+    <div class="ring" id="ring">
+      <div class="ring-inner">
+        <span class="drop">💧</span>
+        <div class="big" id="total">0 ml</div>
+        <div class="muted">of <span id="targetLabel">2,000</span> ml</div>
+      </div>
+    </div>
+    <div id="goalLine">You've got this! Every sip counts 💙</div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-foot">
+      <span id="percent">0% completed</span>
+      <span id="remainingTiny">2,000 ml to go</span>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat purple">
+      <div class="stat-label">🎯 DAILY GOAL</div>
+      <div class="stat-value" id="targetStat">2,000 ml</div>
+      <div class="stat-note">One day at a time</div>
+    </div>
+    <div class="stat cyan">
+      <div class="stat-label">🌊 STILL TO GO</div>
+      <div class="stat-value" id="remaining">2,000 ml</div>
+      <div class="stat-note" id="remainingNote">Keep sipping!</div>
+    </div>
   </div>
-</section>
 
-<section class="card">
-  <h3>Today's history</h3>
-  <div id="history"><p>No water logged yet.</p></div>
-  <button class="secondary" style="width:100%;margin-top:12px"
-    onclick="resetDay()">Reset today's log</button>
-</section>
+  <div class="motivation">
+    <div class="emoji" id="motivationEmoji">🌱</div>
+    <div>
+      <strong id="motivationTitle">Build your hydration habit</strong>
+      <p id="motivationText">Add your first glass and watch your progress grow.</p>
+    </div>
+  </div>
 
-<footer>Drink regularly. Your daily progress, made simple.</footer>
+  <section class="panel">
+    <div class="section-title">
+      <h3>💦 Add a drink</h3>
+      <span class="muted">One tap to log</span>
+    </div>
+    <div class="quick">
+      <button class="water-btn" data-amount="150">
+        <span class="cup">🥛</span><strong>150 ml</strong><small>Small glass</small>
+      </button>
+      <button class="water-btn" data-amount="250">
+        <span class="cup">🥤</span><strong>250 ml</strong><small>Regular glass</small>
+      </button>
+      <button class="water-btn" data-amount="500">
+        <span class="cup">🧴</span><strong>500 ml</strong><small>Big bottle</small>
+      </button>
+    </div>
+    <form id="customForm">
+      <input id="customInput" class="field" type="number"
+        min="1" max="5000" placeholder="Custom amount (ml)" required>
+      <button class="btn" type="submit">+ Add</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="section-title">
+      <h3>⚙️ Daily target</h3>
+      <span class="muted">Personalise your goal</span>
+    </div>
+    <form id="targetForm">
+      <input id="targetInput" class="field" type="number"
+        min="1" max="20000" value="2000" required>
+      <button class="btn" type="submit">Save goal</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="section-title">
+      <h3>🧾 Today's activity</h3>
+      <button class="btn light" id="resetBtn" type="button">Reset</button>
+    </div>
+    <div class="history" id="history">
+      <div class="empty">Your glasses will appear here. Start with a sip! 💧</div>
+    </div>
+  </section>
+
+  <footer>
+    💙 Made to help you build a simple habit.<br>
+    Hydration needs vary by person, activity, weather and health.
+  </footer>
 </main>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
 
 <script>
-const KEY = "aquatrack-data-v1";
-const today = () => new Date().toLocaleDateString("en-CA");
+const KEY = "aquatrack-color-v2";
 
-let state = {date:today(), target:2000, entries:[]};
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + "-" +
+    String(d.getMonth()+1).padStart(2,"0") + "-" +
+    String(d.getDate()).padStart(2,"0");
+}
+
+let state = {date:todayKey(), target:2000, entries:[]};
 
 try {
   const saved = JSON.parse(localStorage.getItem(KEY));
-  if (saved && saved.date === today()) state = saved;
-  else if (saved && saved.target) state.target = saved.target;
+  if (saved) {
+    state.target = saved.target || 2000;
+    if (saved.date === todayKey()) {
+      state.entries = Array.isArray(saved.entries) ? saved.entries : [];
+    }
+    state.date = todayKey();
+  }
 } catch(e) {}
 
-function save(){
-  try { localStorage.setItem(KEY, JSON.stringify(state)); }
-  catch(e) {}
+const $ = id => document.getElementById(id);
+
+function save() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(state));
+  } catch(e) {}
 }
 
-function total(){
-  return state.entries.reduce((sum,e)=>sum+e.amount,0);
+function sum() {
+  return state.entries.reduce((n,e) => n + e.amount, 0);
 }
 
-function render(){
-  const sum = total();
+function fmt(n) {
+  return Math.round(n).toLocaleString() + " ml";
+}
+
+let toastTimer;
+
+function toast(message) {
+  $("toast").textContent = message;
+  $("toast").classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    $("toast").classList.remove("show");
+  }, 2100);
+}
+
+function confetti() {
+  const pieces = ["💧","✨","💙","🌟","🫧"];
+  for (let i=0; i<18; i++) {
+    const el = document.createElement("span");
+    el.className = "confetti";
+    el.textContent = pieces[Math.floor(Math.random()*pieces.length)];
+    el.style.left = Math.random()*100 + "vw";
+    el.style.animationDelay = Math.random()*.45 + "s";
+    document.body.append(el);
+    setTimeout(() => el.remove(), 2300);
+  }
+}
+
+let celebrated = false;
+
+function render() {
+  const consumed = sum();
   const goal = Number(state.target) || 2000;
-  const pct = Math.min(100, Math.round(sum / goal * 100));
-  document.getElementById("total").textContent = sum.toLocaleString();
-  document.getElementById("remaining").textContent =
-    Math.max(0,goal-sum).toLocaleString() + " ml remaining";
-  document.getElementById("progress").textContent =
-    pct + "% of daily goal";
-  document.getElementById("ring").style.background =
-    `conic-gradient(#13a8df ${pct}%,#e4f3f9 ${pct}%)`;
-  document.getElementById("target").value = goal;
+  const pct = Math.min(100, Math.round(consumed/goal*100));
+  const left = Math.max(0, goal-consumed);
 
-  const history = document.getElementById("history");
-  if (!state.entries.length) {
-    history.innerHTML = "<p>No water logged yet.</p>";
+  $("today").textContent = new Date().toLocaleDateString(
+    undefined, {weekday:"long", month:"short", day:"numeric"}
+  );
+  $("datePill").textContent = new Date().toLocaleDateString(
+    undefined, {month:"short", day:"numeric"}
+  ).toUpperCase();
+
+  $("total").textContent = fmt(consumed);
+  $("targetLabel").textContent = goal.toLocaleString();
+  $("targetStat").textContent = fmt(goal);
+  $("remaining").textContent = fmt(left);
+  $("remainingTiny").textContent = fmt(left) + " to go";
+  $("percent").textContent = pct + "% completed";
+  $("targetInput").value = goal;
+
+  $("ring").style.background =
+    `conic-gradient(from -90deg,#6c5ce7 0%,#4b9efb ${pct*.55}%,#ff80b5 ${pct}%,#e9e7ff ${pct}%)`;
+
+  $("progressFill").style.width = pct + "%";
+
+  $("heroMessage").textContent = pct >= 100
+    ? "Daily goal complete — amazing!"
+    : consumed > 0 ? "You are making waves!" : "Your hydration journey starts now";
+
+  $("goalLine").textContent = pct >= 100
+    ? "Goal reached! You made a splash today! 🎉"
+    : pct >= 50 ? "More than halfway there — keep flowing! 🌈"
+    : consumed > 0 ? "Nice start! Every sip counts 💙"
+    : "You've got this! Every sip counts 💙";
+
+  $("remainingNote").textContent = left === 0
+    ? "Goal reached! 🎉"
+    : pct >= 50 ? "Almost there!" : "Keep sipping!";
+
+  if (pct >= 100 && !celebrated) {
+    confetti();
+    celebrated = true;
+  } else if (pct < 100) {
+    celebrated = false;
+  }
+
+  if (pct >= 100) {
+    $("motivationEmoji").textContent = "🏆";
+    $("motivationTitle").textContent = "You did it, water hero!";
+    $("motivationText").textContent =
+      "You reached your daily target. Great job!";
+  } else if (pct >= 50) {
+    $("motivationEmoji").textContent = "🚀";
+    $("motivationTitle").textContent = "You are on a roll!";
+    $("motivationText").textContent =
+      "You passed the halfway mark. Keep your steady pace.";
+  } else if (consumed > 0) {
+    $("motivationEmoji").textContent = "🌊";
+    $("motivationTitle").textContent = "A lovely start!";
+    $("motivationText").textContent =
+      "Each glass brings you closer to your personal goal.";
   } else {
-    history.innerHTML = "";
-    [...state.entries].reverse().forEach(entry=>{
+    $("motivationEmoji").textContent = "🌱";
+    $("motivationTitle").textContent = "Build your hydration habit";
+    $("motivationText").textContent =
+      "Add your first glass and watch your progress grow.";
+  }
+
+  const hist = $("history");
+  hist.innerHTML = "";
+
+  if (!state.entries.length) {
+    hist.innerHTML =
+      '<div class="empty">Your glasses will appear here. Start with a sip! 💧</div>';
+  } else {
+    state.entries.slice().reverse().forEach(e => {
       const row = document.createElement("div");
       row.className = "entry";
+
       const info = document.createElement("div");
-      const amount = document.createElement("strong");
-      amount.textContent = entry.amount + " ml";
-      const time = document.createElement("div");
-      time.className = "small";
-      time.textContent = entry.time;
-      info.append(amount,time);
-      const remove = document.createElement("button");
-      remove.className = "remove";
-      remove.textContent = "Remove";
-      remove.onclick = ()=> {
-        state.entries = state.entries.filter(e=>e.id!==entry.id);
-        save();render();
+      const strong = document.createElement("strong");
+      strong.textContent = fmt(e.amount);
+
+      const time = document.createElement("small");
+      time.textContent = e.time;
+
+      info.append(strong, time);
+
+      const del = document.createElement("button");
+      del.className = "remove";
+      del.textContent = "Remove";
+
+      del.onclick = () => {
+        state.entries = state.entries.filter(x => x.id !== e.id);
+        save();
+        render();
+        toast("Entry removed");
       };
-      row.append(info,remove);
-      history.append(row);
+
+      row.append(info, del);
+      hist.append(row);
     });
   }
 }
 
-function addWater(amount){
+function addWater(amount) {
   amount = Number(amount);
-  if (!Number.isFinite(amount) || amount<=0 || amount>10000){
-    alert("Enter an amount between 1 and 10000 ml.");
+
+  if (!Number.isFinite(amount) || amount < 1 || amount > 5000) {
+    toast("Enter an amount from 1 to 5,000 ml");
     return;
   }
+
   state.entries.push({
-    id: Date.now()+Math.random(),
+    id: Date.now() + Math.random(),
     amount: Math.round(amount),
-    time: new Date().toLocaleTimeString([],{
-      hour:"2-digit",minute:"2-digit"
+    time: new Date().toLocaleTimeString([], {
+      hour:"2-digit", minute:"2-digit"
     })
   });
-  save();render();
+
+  save();
+  render();
+  toast("+" + fmt(amount) + " added. Nice! 💧");
 }
 
-function addCustom(){
-  const field = document.getElementById("custom");
-  if (!field.value) return;
-  addWater(field.value);
-  field.value = "";
-}
+document.querySelectorAll("[data-amount]").forEach(button => {
+  button.addEventListener("click", () => addWater(button.dataset.amount));
+});
 
-function saveTarget(){
-  const value = Number(document.getElementById("target").value);
-  if (!Number.isFinite(value)||value<1||value>20000){
-    alert("Set a target between 1 and 20000 ml.");
+$("customForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const input = $("customInput");
+  if (input.value) {
+    addWater(input.value);
+    input.value = "";
+  }
+});
+
+$("targetForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const n = Number($("targetInput").value);
+
+  if (!Number.isFinite(n) || n < 1 || n > 20000) {
+    toast("Choose a target from 1 to 20,000 ml");
     return;
   }
-  state.target = Math.round(value);
-  save();render();
-}
 
-function resetDay(){
-  if (confirm("Clear all of today's water entries?")){
+  state.target = Math.round(n);
+  save();
+  render();
+  toast("Daily goal updated! 🎯");
+});
+
+$("resetBtn").addEventListener("click", () => {
+  if (confirm("Reset today's water log?")) {
     state.entries = [];
-    save();render();
+    save();
+    render();
+    toast("Fresh start! 🌱");
   }
-}
+});
 
 render();
 </script>
